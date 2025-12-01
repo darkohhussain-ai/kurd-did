@@ -1,5 +1,5 @@
 {
-  "name": "streamgenius-iptv-&-vod",
+  "name": "kurd24-tv-2",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,12 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "lucide-react": "^0.554.0",
-    "@google/genai": "^1.30.0",
-    "react-router-dom": "^7.9.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "firebase": "^12.6.0"
+    "firebase": "^12.6.0",
+    "@google/genai": "^1.30.0",
+    "react-router-dom": "^7.9.6",
+    "lucide-react": "^0.555.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

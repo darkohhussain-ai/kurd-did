@@ -1,4 +1,5 @@
 
+
 export type Language = 'en' | 'ku' | 'ar';
 
 export interface Channel {
@@ -19,17 +20,27 @@ export interface Movie {
   year: string;
   genre: string[];
   rating: string;
+  type: 'movie' | 'series';
+}
+
+export interface HistoryItem {
+  id: string;
+  type: 'channel' | 'movie';
+  title: string;
+  image: string;
+  url: string;
+  timestamp: number;
 }
 
 export interface Customer {
-  id: string;
-  name: string;
+  id: string; // Document ID (Device ID)
   deviceId: string;
-  location: string;
-  subscriptionEnd: string; // ISO Date
-  lastActive: string; // ISO Date
-  planType: '1 Month' | '6 Months' | '12 Months' | 'Trial' | 'Premium';
-  status: 'Active' | 'Expired' | 'Banned';
+  name?: string;
+  location?: string;
+  subscriptionEnd: any; // Firestore Timestamp or ISO string
+  lastActive: any; // Firestore Timestamp or ISO string
+  status: 'Active' | 'Expired' | 'Pending' | 'Banned';
+  createdAt: any;
 }
 
 export type ThemeId = 'dark' | 'glossy-white' | 'sport' | 'ramadan' | 'nawroz' | 'black-friday' | 'goat';
@@ -42,19 +53,10 @@ export interface AppConfig {
   featuredMovieId?: string;
   welcomeMessage: string;
   remoteDbUrl?: string;
-  firebaseConfig?: string; // Field for "Firebase Test Code"
+  firebaseConfig?: string;
   requireSubscription: boolean;
 }
 
-export interface Playlist {
-  id: string;
-  name: string;
-  url: string;
-  type: 'LIVE' | 'VOD';
-  items: Channel[] | Movie[];
-}
-
-// Global window extension for Hls.js
 declare global {
   interface Window {
     Hls: any;
