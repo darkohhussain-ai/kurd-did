@@ -1,4 +1,5 @@
 
+
 import { AppConfig, Channel, Movie, Language, ThemeId, HistoryItem } from '../types';
 
 const CONFIG_KEY = 'streamgenius_config';
@@ -69,12 +70,19 @@ const DEMO_MOVIES: Movie[] = [
         backdrop: 'https://durian.blender.org/wp-content/uploads/2010/09/sintel_front_cover_small.jpg',
         url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
         year: '2015', rating: '8.1', genre: ['Sci-Fi', 'Comedy'], type: 'series'
+    },
+    {
+        id: 's2', title: 'Breaking Bad', description: 'A high school chemistry teacher turned methamphetamine manufacturing drug dealer.',
+        poster: 'https://upload.wikimedia.org/wikipedia/en/6/61/Breaking_Bad_title_card.png',
+        backdrop: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Breaking_Bad_logo.svg/1200px-Breaking_Bad_logo.svg.png',
+        url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+        year: '2008', rating: '9.5', genre: ['Crime', 'Drama'], type: 'series'
     }
 ];
 
 const DEFAULT_CONFIG: AppConfig = {
   appName: 'Kurd24 TV',
-  theme: 'goat', // G.O.A.T Luxury (Gold/Black)
+  theme: 'ultra-glass',
   language: 'en',
   welcomeMessage: 'Welcome to your premium streaming experience.',
   featuredMovieId: 'm1',
@@ -91,7 +99,8 @@ export const THEMES: Record<ThemeId, { name: string; bg: string; glass: string; 
   'ramadan': { name: 'Ramadan Gold', bg: 'bg-[#064e3b]', glass: 'bg-[#064e3b]/80 backdrop-blur-md border-[#fbbf24]/50', text: 'text-[#fef3c7]', accent: 'emerald' },
   'nawroz': { name: 'Nawroz Spring', bg: 'bg-gradient-to-br from-green-600 to-yellow-400', glass: 'bg-white/30 backdrop-blur-lg border-white/40', text: 'text-white', accent: 'green' },
   'black-friday': { name: 'Black Friday', bg: 'bg-black', glass: 'bg-zinc-900/90 border-zinc-800', text: 'text-white', accent: 'purple' },
-  'goat': { name: 'G.O.A.T Luxury', bg: 'bg-neutral-900', glass: 'bg-neutral-900/80 border-[#d4af37]', text: 'text-[#d4af37]', accent: 'yellow' }
+  'goat': { name: 'G.O.A.T Luxury', bg: 'bg-neutral-900', glass: 'bg-neutral-900/80 border-[#d4af37]', text: 'text-[#d4af37]', accent: 'yellow' },
+  'ultra-glass': { name: 'Ultra GlassOS', bg: 'bg-black', glass: 'glass-panel', text: 'text-white', accent: 'cyan' }
 };
 
 export const t = (key: string, lang: Language = 'en') => key; // Simplified for robustness
@@ -140,7 +149,7 @@ export const getAppConfig = (): AppConfig => {
       const stored = localStorage.getItem(CONFIG_KEY);
       const config = stored ? JSON.parse(stored) : DEFAULT_CONFIG;
       // Ensure theme is valid to prevent crashes
-      if (!THEMES[config.theme as ThemeId]) config.theme = 'goat';
+      if (!THEMES[config.theme as ThemeId]) config.theme = 'ultra-glass';
       return { ...DEFAULT_CONFIG, ...config };
   } catch { return DEFAULT_CONFIG; }
 };

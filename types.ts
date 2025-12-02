@@ -43,7 +43,7 @@ export interface Customer {
   createdAt: any;
 }
 
-export type ThemeId = 'dark' | 'glossy-white' | 'sport' | 'ramadan' | 'nawroz' | 'black-friday' | 'goat';
+export type ThemeId = 'dark' | 'glossy-white' | 'sport' | 'ramadan' | 'nawroz' | 'black-friday' | 'goat' | 'ultra-glass';
 
 export interface AppConfig {
   appName: string;
