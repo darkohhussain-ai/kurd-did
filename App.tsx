@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { Tv, Film, Settings, Home, Layers, Video, Search, Lock, User, Info, Wifi, Play, Grid, Heart, Star, Calendar, X, ChevronLeft, ChevronRight, Clock, Power, Activity, Cloud, Monitor, Sun } from 'lucide-react';
 import { 
@@ -10,6 +10,54 @@ import { initFirebase, registerDevice, subscribeToUserStatus } from './services/
 import { AppConfig, Channel, Movie, Customer, HistoryItem } from './types';
 import VideoPlayer from './components/VideoPlayer';
 import { AdminPanel } from './components/AdminPanel';
+
+// --- Splash Screen ---
+const SplashScreen: React.FC<{ onFinish: () => void }> = ({ onFinish }) => {
+    useEffect(() => {
+        const t = setTimeout(onFinish, 4000); 
+        return () => clearTimeout(t);
+    }, [onFinish]);
+
+    return (
+        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center font-[Outfit]">
+            <div className="animate-zoom-in flex flex-col items-center">
+                 {/* Logo Graphic Simulation */}
+                 <div className="relative mb-6">
+                     <div className="flex items-center">
+                         {/* Stylized K */}
+                         <div className="relative">
+                            <div className="absolute -top-6 -right-6 text-[#d4af37] animate-ping opacity-50"><Wifi size={40}/></div>
+                            <span className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400" style={{lineHeight: 0.8}}>K</span>
+                         </div>
+                         {/* Play Icon */}
+                         <div className="relative ml-2">
+                            <div className="w-20 h-20 bg-[#d4af37] rounded-3xl rotate-12 flex items-center justify-center shadow-2xl shadow-[#d4af37]/20">
+                                <Play fill="black" className="text-black w-10 h-10 ml-1" />
+                            </div>
+                         </div>
+                     </div>
+                 </div>
+                 
+                 {/* Text */}
+                 <div className="text-center">
+                     <h1 className="text-5xl font-black tracking-tighter text-white mb-1">
+                         KURD <span className="text-[#d4af37]">4K</span>
+                     </h1>
+                     <p className="text-[#d4af37]/60 text-sm font-bold tracking-[0.5em] uppercase animate-pulse">Premium Experience</p>
+                 </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <style>{`
+                @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+                .progress-anim { animation: progress 3.5s cubic-bezier(0.2, 0, 0, 1) forwards; transform-origin: left; }
+            `}</style>
+             <div className="absolute bottom-10 w-64 h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-[#d4af37] w-full progress-anim"></div>
+            </div>
+        </div>
+    );
+};
 
 // --- Ultra GlassOS Components ---
 
@@ -46,34 +94,59 @@ const GlassOSStatusBar: React.FC = () => {
 };
 
 const GlassDock: React.FC = () => {
+    const navigate = useNavigate();
     const location = useLocation();
+    
     const menuItems = [
-        // Updated Menu Structure based on request
         { id: 'about', label: 'About Us', icon: Info, route: '/about' },
         { id: 'vod', label: 'Movies', icon: Film, route: '/vod?type=movie' },
-        { id: 'live', label: 'Live', icon: Tv, route: '/live' }, // Replaces Home
+        { id: 'live', label: 'Live', icon: Tv, route: '/live' }, // Index 2
         { id: 'series', label: 'Series', icon: Layers, route: '/vod?type=series' },
         { id: 'settings', label: 'Settings', icon: Settings, route: '/admin' },
     ];
 
+    // Default focus to index 2 (Live)
+    const [focusedIndex, setFocusedIndex] = useState(2);
+
+    // Keyboard Navigation Logic
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowRight') {
+                setFocusedIndex(prev => Math.min(prev + 1, menuItems.length - 1));
+            } else if (e.key === 'ArrowLeft') {
+                setFocusedIndex(prev => Math.max(prev - 1, 0));
+            } else if (e.key === 'Enter') {
+                // Navigate to the focused item's route
+                navigate(menuItems[focusedIndex].route);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [focusedIndex, menuItems, navigate]);
+
     return (
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50">
             <div className="glass-dock px-6 py-4 rounded-[2rem] flex items-center gap-4 md:gap-8 hover:px-8 transition-all duration-500 ease-out">
-                {menuItems.map((item) => {
-                    const isActive = location.pathname === item.route || (item.route !== '/' && location.pathname.startsWith(item.route));
+                {menuItems.map((item, index) => {
+                    const isRouteActive = location.pathname === item.route || (item.route !== '/' && location.pathname.startsWith(item.route));
+                    const isFocused = index === focusedIndex;
+                    const isActive = isRouteActive || isFocused;
+
                     return (
-                        <Link 
+                        <div 
                             key={item.id} 
-                            to={item.route}
-                            className={`group flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? '-translate-y-4' : 'hover:-translate-y-2'}`}
+                            onClick={() => { setFocusedIndex(index); navigate(item.route); }}
+                            onMouseEnter={() => setFocusedIndex(index)}
+                            className={`group cursor-pointer flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? '-translate-y-4' : 'hover:-translate-y-2'}`}
                         >
-                            <div className={`p-3 md:p-4 rounded-full transition-all duration-300 ${isActive ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.5)] scale-110' : 'bg-white/5 text-white hover:bg-white/20'}`}>
+                            <div className={`p-3 md:p-4 rounded-full transition-all duration-300 border-2 ${isActive ? 'bg-white text-black border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.5)] scale-110' : 'bg-white/5 text-white border-transparent hover:bg-white/20'}`}>
                                 <item.icon size={24} className="md:w-6 md:h-6" strokeWidth={isActive ? 2.5 : 1.5} />
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider transition-opacity duration-300 ${isActive ? 'opacity-100 text-white' : 'opacity-0 group-hover:opacity-100 text-slate-400'}`}>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider transition-opacity duration-300 ${isActive ? 'opacity-100 text-white' : 'opacity-0 text-slate-400'}`}>
                                 {item.label}
                             </span>
-                        </Link>
+                        </div>
                     );
                 })}
             </div>
@@ -134,7 +207,8 @@ const Dashboard: React.FC = () => {
         } else if (channels.length > 0) {
             setBgVideo(channels[0].url);
         } else {
-            setBgVideo('http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+            // Default safe background video (HLS)
+            setBgVideo('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
         }
     }, [channels]);
 
@@ -164,8 +238,6 @@ const Dashboard: React.FC = () => {
                  </h1>
             </div>
 
-            {/* Content Area - Cleaned up: Removed Jump Back In */}
-            
             <GlassDock />
         </div>
     );
@@ -182,7 +254,10 @@ const LiveTvPage: React.FC = () => {
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGroup, setSelectedGroup] = useState<string>('All');
-    const [isUiVisible, setIsUiVisible] = useState(true);
+    
+    // UI Visibility State - Default FALSE (Hidden)
+    const [isUiVisible, setIsUiVisible] = useState(false);
+    const inactivityTimeoutRef = useRef<any>(null);
 
     // Initial load
     useEffect(() => {
@@ -196,6 +271,10 @@ const LiveTvPage: React.FC = () => {
         const last = channels.find(c => c.id === lastId);
         if (last) setSelectedChannel(last);
         else setSelectedChannel(channels[0]);
+        
+        // Temporarily show UI to confirm channel load, then hide
+        setIsUiVisible(true);
+        resetInactivityTimer();
     }, [initialChannelId, channels]);
 
     // Save history
@@ -209,26 +288,44 @@ const LiveTvPage: React.FC = () => {
     // Filtering
     const groups = ['All', ...Array.from(new Set(channels.map(c => c.group || 'General')))];
     const filteredChannels = channels.filter(c => {
-        const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const term = searchTerm.toLowerCase();
+        const matchSearch = c.name.toLowerCase().includes(term) || (c.group && c.group.toLowerCase().includes(term));
         const matchGroup = selectedGroup === 'All' || c.group === selectedGroup;
         return matchSearch && matchGroup;
     });
 
-    // Auto hide UI
+    // Auto Hide Logic (3 seconds)
+    const resetInactivityTimer = () => {
+        if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
+        inactivityTimeoutRef.current = setTimeout(() => {
+            setIsUiVisible(false);
+        }, 3000);
+    };
+
+    // Interaction Handler
+    const handleInteraction = () => {
+        setIsUiVisible(true);
+        resetInactivityTimer();
+    };
+
     useEffect(() => {
-        let timeout: any;
-        const resetTimer = () => {
-            setIsUiVisible(true);
-            clearTimeout(timeout);
-            timeout = setTimeout(() => setIsUiVisible(false), 8000);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Show UI on Enter or Space
+            if (e.key === 'Enter' || e.key === ' ') {
+                handleInteraction();
+            }
         };
-        window.addEventListener('mousemove', resetTimer);
-        window.addEventListener('touchstart', resetTimer);
-        resetTimer();
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('mousemove', handleInteraction);
+        window.addEventListener('click', handleInteraction);
+        window.addEventListener('touchstart', handleInteraction);
+        
         return () => {
-            window.removeEventListener('mousemove', resetTimer);
-            window.removeEventListener('touchstart', resetTimer);
-            clearTimeout(timeout);
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('mousemove', handleInteraction);
+            window.removeEventListener('click', handleInteraction);
+            window.removeEventListener('touchstart', handleInteraction);
+            if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
         };
     }, []);
 
@@ -236,7 +333,8 @@ const LiveTvPage: React.FC = () => {
         <div className="relative h-[100dvh] bg-black overflow-hidden group">
             
             {/* Full Screen Player */}
-            <div className="absolute inset-0 z-0">
+            {/* When UI is visible on desktop, shift player slightly right. Mobile stays full width. */}
+            <div className={`absolute inset-0 z-0 transition-all duration-500 ease-in-out ${isUiVisible ? 'md:pl-96' : 'pl-0'}`}>
                 {selectedChannel ? (
                     <VideoPlayer 
                         key={selectedChannel.id} 
@@ -249,17 +347,24 @@ const LiveTvPage: React.FC = () => {
                 )}
             </div>
 
-            {/* Top Info Bar (Overlay) */}
+            {/* Top Info Bar (Overlay) - Shows Channel Info for 3s */}
             <div className={`absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/90 to-transparent z-20 transition-all duration-500 ${isUiVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'}`}>
-                 <div className="flex justify-between items-start">
+                 <div className={`flex justify-between items-start transition-all duration-500 ${isUiVisible ? 'md:ml-96' : 'ml-0'}`}>
                      <div>
-                         <button onClick={() => navigate('/')} className="flex items-center gap-2 text-slate-300 hover:text-white mb-2">
-                             <ChevronLeft size={20} /> Back to Dashboard
+                         {/* Home Button in Overlay */}
+                         <button onClick={() => navigate('/')} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white mb-4 transition-colors border border-white/10">
+                             <Home size={18} /> <span className="font-bold text-sm">HOME</span>
                          </button>
-                         <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg">{selectedChannel?.name || 'Loading...'}</h1>
-                         <div className="flex items-center gap-2 text-[#d4af37] font-bold text-sm mt-1">
-                             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> LIVE
-                             <span className="text-slate-400 px-2 border-l border-slate-600">{selectedChannel?.group}</span>
+
+                         <div className="flex items-center gap-4">
+                            {selectedChannel?.logo && <img src={selectedChannel.logo} className="h-16 w-auto object-contain bg-black/20 rounded p-1" />}
+                            <div>
+                                <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg">{selectedChannel?.name || 'Loading...'}</h1>
+                                <div className="flex items-center gap-2 text-[#d4af37] font-bold text-sm mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> LIVE
+                                    <span className="text-slate-400 px-2 border-l border-slate-600">{selectedChannel?.group}</span>
+                                </div>
+                            </div>
                          </div>
                      </div>
                      <div className="text-right hidden md:block">
@@ -270,7 +375,7 @@ const LiveTvPage: React.FC = () => {
                  </div>
             </div>
 
-            {/* Left Sidebar Channel List (Glass Overlay) */}
+            {/* Left Sidebar Channel List (Glass Overlay) - Hidden by default */}
             <div className={`absolute left-0 top-0 bottom-0 w-80 md:w-96 bg-black/40 backdrop-filter backdrop-blur-xl border-r border-white/5 z-30 transition-all duration-500 ${isUiVisible ? 'translate-x-0' : '-translate-x-full'}`}>
                  <div className="flex flex-col h-full p-4">
                      {/* Search */}
@@ -280,7 +385,7 @@ const LiveTvPage: React.FC = () => {
                              type="text" 
                              placeholder="Find channel..." 
                              value={searchTerm}
-                             onChange={e => setSearchTerm(e.target.value)}
+                             onChange={e => { setSearchTerm(e.target.value); resetInactivityTimer(); }}
                              className="w-full bg-white/10 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:bg-white/20"
                          />
                      </div>
@@ -290,7 +395,7 @@ const LiveTvPage: React.FC = () => {
                          {groups.map(g => (
                              <button 
                                  key={g} 
-                                 onClick={() => setSelectedGroup(g)}
+                                 onClick={() => { setSelectedGroup(g); resetInactivityTimer(); }}
                                  className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap border ${selectedGroup === g ? 'bg-white text-black border-white' : 'bg-transparent text-slate-300 border-white/20 hover:border-white'}`}
                              >
                                  {g}
@@ -299,11 +404,11 @@ const LiveTvPage: React.FC = () => {
                      </div>
 
                      {/* List */}
-                     <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1">
+                     <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1" onScroll={resetInactivityTimer}>
                          {filteredChannels.map(ch => (
                              <button 
                                  key={ch.id}
-                                 onClick={() => setSelectedChannel(ch)}
+                                 onClick={() => { setSelectedChannel(ch); resetInactivityTimer(); }}
                                  className={`w-full flex items-center gap-3 p-3 rounded-xl border border-transparent transition-all ${selectedChannel?.id === ch.id ? 'bg-[#d4af37] text-black shadow-lg' : 'hover:bg-white/10 text-slate-200'}`}
                              >
                                  <div className="w-8 h-8 rounded bg-black/20 flex items-center justify-center p-1">
@@ -317,13 +422,6 @@ const LiveTvPage: React.FC = () => {
                          ))}
                      </div>
                  </div>
-            </div>
-            
-            {/* Bottom Controls Hint */}
-            <div className={`absolute bottom-8 right-8 z-20 transition-opacity duration-500 ${isUiVisible ? 'opacity-100' : 'opacity-0'}`}>
-                <div className="flex gap-4">
-                    <button className="p-4 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 border border-white/10"><Settings size={20} /></button>
-                </div>
             </div>
         </div>
     );
@@ -440,6 +538,12 @@ const VodPage: React.FC = () => {
 // --- Main App ---
 
 const App: React.FC = () => {
+    const [showSplash, setShowSplash] = useState(true);
+
+    if (showSplash) {
+        return <SplashScreen onFinish={() => setShowSplash(false)} />;
+    }
+
     return (
         <Router>
             <Routes>

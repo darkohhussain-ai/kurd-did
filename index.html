@@ -16,6 +16,7 @@
         overflow: hidden; /* App-like feel */
         overscroll-behavior: none;
         user-select: none;
+        touch-action: pan-x pan-y;
       }
 
       /* Ultra Glass Effect */
@@ -71,17 +72,23 @@
         to { transform: scale(1); opacity: 1; }
       }
       .zoom-in { animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+      
+      @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6"
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
   }
 }
 </script>
@@ -91,4 +98,3 @@
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
-    
